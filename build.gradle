@@ -1,6 +1,6 @@
 plugins {
   id "org.jetbrains.intellij" version "0.7.3"
-  id "org.jetbrains.grammarkit" version "2020.2.1"
+  id "org.jetbrains.grammarkit" version "2021.2.1"
   id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
 }
 
@@ -32,7 +32,7 @@ version = artifactVersion
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
   options.encoding = 'UTF-8'
 //  options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
@@ -88,7 +88,7 @@ dependencies {
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.7.1")
 }
 
-task generateLombok {
+tasks.register('generateLombok') {
   doLast {
 // Tasks
     copy {
@@ -109,17 +109,42 @@ task generateLombok {
   }
 }
 
-task generateLombokConfigParser(type: org.jetbrains.grammarkit.tasks.GenerateParser) {
+
+// 刚拷下来代码这里会报错
+//task generateLombokConfigParser(type: org.jetbrains.grammarkit.tasks.GenerateParser) {
+//  println "Generating Parser for GrammerKit: ${grammarKit.grammarKitRelease}"
+//
+//  source "src/main/resources/de/plushnikov/intellij/plugin/language/lombokConfig.bnf"
+//  targetRoot = "generated/src"
+//  pathToParser "/de/plushnikov/intellij/plugin/language/parser/LombokConfigParser.java"
+//  pathToPsiRoot "/de/plushnikov/intellij/plugin/language/psi"
+//}
+//
+//task generateLombokConfigLexer(type: org.jetbrains.grammarkit.tasks.GenerateLexer) {
+//  dependsOn generateLombokConfigParser
+//  println "Generating Lexer for JFlexRelease: ${grammarKit.jflexRelease}"
+//
+//  source = "src/main/resources/de/plushnikov/intellij/plugin/language/lombokConfig.flex"
+//  targetDir = "generated/src/de/plushnikov/intellij/plugin/language"
+//  targetClass = "LombokConfigLexer"
+//}
+//
+//clean.doFirst {
+//  delete 'generated', 'out'
+//}
+//
+//compileJava.dependsOn generateLombokConfigLexer, generateLombok
+//check.dependsOn jacocoTestReport
+generateParser() {
   println "Generating Parser for GrammerKit: ${grammarKit.grammarKitRelease}"
 
-  source "src/main/resources/de/plushnikov/intellij/plugin/language/lombokConfig.bnf"
+  source = "src/main/resources/de/plushnikov/intellij/plugin/language/lombokConfig.bnf"
   targetRoot = "generated/src"
-  pathToParser "/de/plushnikov/intellij/plugin/language/parser/LombokConfigParser.java"
-  pathToPsiRoot "/de/plushnikov/intellij/plugin/language/psi"
+  pathToParser = "/de/plushnikov/intellij/plugin/language/parser/LombokConfigParser.java"
+  pathToPsiRoot = "/de/plushnikov/intellij/plugin/language/psi"
 }
 
-task generateLombokConfigLexer(type: org.jetbrains.grammarkit.tasks.GenerateLexer) {
-  dependsOn generateLombokConfigParser
+generateLexer () {
   println "Generating Lexer for JFlexRelease: ${grammarKit.jflexRelease}"
 
   source = "src/main/resources/de/plushnikov/intellij/plugin/language/lombokConfig.flex"
@@ -131,8 +156,9 @@ clean.doFirst {
   delete 'generated', 'out'
 }
 
-compileJava.dependsOn generateLombokConfigLexer, generateLombok
+compileJava.dependsOn generateLexer, generateLombok
 check.dependsOn jacocoTestReport
+
 
 test {
   // show standard out and standard error of the test JVM(s) on the console
